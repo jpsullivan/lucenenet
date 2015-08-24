@@ -25,7 +25,7 @@ namespace Lucene.Net.Analysis.CharFilters
     /// <summary>
     /// Base utility class for implementing a <seealso cref="CharFilter"/>.
     /// You subclass this, and then record mappings by calling
-    /// <seealso cref="#addOffCorrectMap"/>, and then invoke the correct
+    /// <seealso cref="AddOffCorrectMap"/>, and then invoke the correct
     /// method to correct an offset.
     /// </summary>
     public abstract class BaseCharFilter : CharFilter
@@ -33,7 +33,7 @@ namespace Lucene.Net.Analysis.CharFilters
 
         private int[] offsets;
         private int[] diffs;
-        private int size = 0;
+        private int size;
 
         protected BaseCharFilter(TextReader @in)
             : base(@in)
@@ -41,8 +41,9 @@ namespace Lucene.Net.Analysis.CharFilters
         }
 
         /// <summary>
-        /// Retrieve the corrected offset. </summary>
-        protected internal override int Correct(int currentOff)
+        /// Retrieve the corrected offset.
+        /// </summary>
+        protected override int Correct(int currentOff)
         {
             if (offsets == null || currentOff < offsets[0])
             {
@@ -60,7 +61,7 @@ namespace Lucene.Net.Analysis.CharFilters
 
             while (hi >= lo)
             {
-                mid = (int)((uint)(lo + hi) >> 1);
+                mid = (int) ((uint) (lo + hi) >> 1);
                 if (currentOff < offsets[mid])
                 {
                     hi = mid - 1;
@@ -79,18 +80,13 @@ namespace Lucene.Net.Analysis.CharFilters
             {
                 return mid == 0 ? currentOff : currentOff + diffs[mid - 1];
             }
-            else
-            {
-                return currentOff + diffs[mid];
-            }
+
+            return currentOff + diffs[mid];
         }
 
-        protected internal virtual int LastCumulativeDiff
+        protected int LastCumulativeDiff
         {
-            get
-            {
-                return offsets == null ? 0 : diffs[size - 1];
-            }
+            get { return offsets == null ? 0 : diffs[size - 1]; }
         }
 
         /// <summary>
@@ -105,30 +101,33 @@ namespace Lucene.Net.Analysis.CharFilters
         /// <param name="off"> The output stream offset at which to apply the correction </param>
         /// <param name="cumulativeDiff"> The input offset is given by adding this
         ///                       to the output offset </param>
-        protected internal virtual void AddOffCorrectMap(int off, int cumulativeDiff)
-	  {
-		if (offsets == null)
-		{
-		  offsets = new int[64];
-		  diffs = new int[64];
-		}
-		else if (size == offsets.Length)
-		{
-		  offsets = ArrayUtil.Grow(offsets);
-		  diffs = ArrayUtil.Grow(diffs);
-		}
+        protected internal void AddOffCorrectMap(int off, int cumulativeDiff)
+        {
+            if (offsets == null)
+            {
+                offsets = new int[64];
+                diffs = new int[64];
+            }
+            else if (size == offsets.Length)
+            {
+                offsets = ArrayUtil.Grow(offsets);
+                diffs = ArrayUtil.Grow(diffs);
+            }
 
-		Debug.Assert(size == 0 || off >= offsets[size - 1]) : "Offset #" + size + "(" + off + ") is less than the last recorded offset " + offsets[size - 1] + "\n" + Arrays.ToString(offsets) + "\n" + Arrays.ToString(diffs);
+            Debug.Assert(size == 0 || off >= offsets[size - 1],
+                "Offset #" + size + "(" + off + ") is less than the last recorded offset " + offsets[size - 1] +
+                "\n" +
+                Arrays.ToString(offsets) + "\n" + Arrays.ToString(diffs));
 
-		if (size == 0 || off != offsets[size - 1])
-		{
-		  offsets[size] = off;
-		  diffs[size++] = cumulativeDiff;
-		} // Overwrite the diff at the last recorded offset
-		else
-		{
-		  diffs[size - 1] = cumulativeDiff;
-		}
-	  }
+            if (size == 0 || off != offsets[size - 1])
+            {
+                offsets[size] = off;
+                diffs[size++] = cumulativeDiff;
+            } // Overwrite the diff at the last recorded offset
+            else
+            {
+                diffs[size - 1] = cumulativeDiff;
+            }
+        }
     }
 }
