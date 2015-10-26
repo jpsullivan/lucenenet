@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-using System.Diagnostics;
 using System.IO;
-using Lucene.Net.Support;
 using Lucene.Net.Util;
 
 namespace Lucene.Net.Analysis.CharFilters
@@ -30,10 +28,9 @@ namespace Lucene.Net.Analysis.CharFilters
     /// </summary>
     public abstract class BaseCharFilter : CharFilter
     {
-
         private int[] offsets;
         private int[] diffs;
-        private int size = 0;
+        private int size;
 
         protected BaseCharFilter(TextReader @in)
             : base(@in)
@@ -42,7 +39,7 @@ namespace Lucene.Net.Analysis.CharFilters
 
         /// <summary>
         /// Retrieve the corrected offset. </summary>
-        protected internal override int Correct(int currentOff)
+        protected override int Correct(int currentOff)
         {
             if (offsets == null || currentOff < offsets[0])
             {
@@ -79,19 +76,11 @@ namespace Lucene.Net.Analysis.CharFilters
             {
                 return mid == 0 ? currentOff : currentOff + diffs[mid - 1];
             }
-            else
-            {
-                return currentOff + diffs[mid];
-            }
+
+            return currentOff + diffs[mid];
         }
 
-        protected internal virtual int LastCumulativeDiff
-        {
-            get
-            {
-                return offsets == null ? 0 : diffs[size - 1];
-            }
-        }
+        protected int LastCumulativeDiff => offsets == null ? 0 : diffs[size - 1];
 
         /// <summary>
         /// <para>
@@ -118,7 +107,7 @@ namespace Lucene.Net.Analysis.CharFilters
 		  diffs = ArrayUtil.Grow(diffs);
 		}
 
-		Debug.Assert(size == 0 || off >= offsets[size - 1]) : "Offset #" + size + "(" + off + ") is less than the last recorded offset " + offsets[size - 1] + "\n" + Arrays.ToString(offsets) + "\n" + Arrays.ToString(diffs);
+		//Debug.Assert(size == 0 || off >= offsets[size - 1]) : "Offset #" + size + "(" + off + ") is less than the last recorded offset " + offsets[size - 1] + "\n" + Arrays.ToString(offsets) + "\n" + Arrays.ToString(diffs);
 
 		if (size == 0 || off != offsets[size - 1])
 		{
